@@ -1,0 +1,242 @@
+Welcome To Pub Nub Chatting(Website used for this  - https://www.pubnub.com/docs/
+Git Example for Mobile is in this link -https://github.com/pubnub/chat-examples-java
+
+steps For Implementing PubNub Chat in app
+1)Developer needs to setup account on pubnub - https://admin.pubnub.com/?email=kelish.iqlance%40gmail.com#/login
+    after login goto to dashboard there are two types of key can be seen on ome page
+        -1. PUBLISH KEY or PUB_KEY
+        -2. SUBSCRIBE KEY or SUB_KEY
+
+        Note- This Step can only provide Testing Keys if there is a require to use full functionality than buy the plan
+//////////////////////////////////////////////////////////////////////For Java////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
+2)Need to add dependency
+      implementation 'com.pubnub:pubnub-gson:4.23.0' in gradle File
+      Latest Version is 6.0.0 till the date
+3)Add Permissions in manifest file
+    <uses-permission android:name="android.permission.INTERNET" />
+    <uses-permission android:name="android.permission.ACCESS_NETWORK_STATE" />
+
+4)Initializing the client
+    PNConfiguration pnConfiguration = new PNConfiguration();
+    pnConfiguration.setSubscribeKey("SubscribeKey");    //SUB_KEY
+    pnConfiguration.setPublishKey("PublishKey");        //PUB_KEY
+    pnConfiguration.setSecure(false);
+    pnConfiguration.setUuid("myUniqueUUID");
+    PubNub pubnub = new PubNub(pnConfiguration);
+5)Adding Listeners For Callbacks
+    SubscribeCallback subscribeCallback = new SubscribeCallback() {
+        @Override
+        public void status(PubNub pubnub, PNStatus status) {
+            //returns the relieved message and sent messages status status are described below
+        }
+
+        @Override
+        public void message(PubNub pubnub, PNMessageResult message) {
+            //returns the messages and its details(Send and receive both as well ass past messages)
+        }
+
+        @Override
+        public void presence(PubNub pubnub, PNPresenceEventResult presence) {
+
+        }
+
+        @Override
+        public void signal(PubNub pubnub, PNSignalResult pnSignalResult) {
+
+        }
+
+        @Override
+        public void messageAction(PubNub pubnub, PNMessageActionResult pnActionResult) {
+
+        }
+
+        @Override
+        public void user(PubNub pubnub, PNUserResult pnUserResult) {
+
+        }
+
+        @Override
+        public void space(PubNub pubnub, PNSpaceResult pnSpaceResult) {
+
+        }
+
+        @Override
+        public void membership(PubNub pubnub, PNMembershipResult pnMembershipResult) {
+
+        }
+
+        @Override
+        public void file(PubNub pubnub, PNFileEventResult pnFileEventResult) {
+
+        }
+
+    };
+
+    pubnub.addListener(subscribeCallback);
+
+    // some time later
+    pubnub.removeListener(subscribeCallback);
+
+    Listener Event for status
+        -PNNetworkUpCategory
+        -PNNetworkDownCategory
+        -PNNetworkIssuesCategory
+        -PNReconnectedCategory
+        -PNConnectedCategory(this will return if message properly sent or received)
+        -PNAccessDeniedCategory
+        -PNMalformedResponseCategory
+        -PNBadRequestCategory
+        -PNDecryptionErrorCategory
+        -PNTimeoutCategory
+        -PNRequestMessageCountExceedCategory
+        -PNUnknownCategory
+
+        //Verify Client's Connectivity
+        pubnub.time().async(new PNCallback<PNTimeResult>() {
+            @Override
+            public void onResponse(PNTimeResult result, PNStatus status) {
+                // handle time result.
+            }
+        });
+        //to Subscribe on channels
+        pubnub.subscribe()
+            .channels(Arrays.asList("my_channel")) // subscribe to channels
+            .withPresence() // also subscribe to related presence information
+            .execute();
+
+        //Publish use to send message
+        pubnub.publish()
+            .message(Arrays.asList("hello", "there"))
+            .channel("suchChannel")
+            .async(new PNCallback<PNPublishResult>() {
+                @Override
+                public void onResponse(PNPublishResult result, PNStatus status) {
+                    // handle publish result, status always present, result if successful
+                    // status.isError to see if error happened
+                }
+            });
+
+            \\returns u the pass message accordingly give parameters
+            pubnub.history()
+                .channel("history_channel") // where to fetch history from
+                .count(100) // how many items to fetch
+                .async(new PNCallback<PNHistoryResult>() {
+                    @Override
+                    public void onResponse(PNHistoryResult result, PNStatus status) {
+
+                    }
+                });
+                //to unsubscribe the messages
+                pubnub.unsubscribe()
+                    .channels(Arrays.asList("my_channel"))
+                    .execute();
+
+                // to destroy pubnub
+                pubnub.destroy();
+
+//////////////////////////////////////////////////////////////////////For Kotlin////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
+
+implementation 'com.pubnub:pubnub-kotlin:v7.0.0'
+2)Need to add dependency
+      Latest Version is 7.0.0 till the date
+      implementation 'com.pubnub:pubnub-kotlin:7.0.0'
+
+3)Add Permissions in manifest file
+    <uses-permission android:name="android.permission.INTERNET" />
+    <uses-permission android:name="android.permission.ACCESS_NETWORK_STATE" />
+
+
+4)Initializing the client
+    val config = PNConfiguration().apply{
+        subscribeKey = "mySubscribeKey"  //SUB_KEY
+        publishKey = "myPublishKey"       //PUB_KEY
+        uuid = "myUniqueUUID"
+    }
+
+    val pubnub = PubNub(config)//Config Pubnub
+5)Adding Listeners For Callbacks
+
+
+        val subscribeCallback: SubscribeCallback = object : SubscribeCallback() {
+            override fun status(pubnub: PubNub, status: PNStatus) {
+                //returns the received message and sent messages status status are described below
+            }
+
+            override fun message(pubnub: PubNub, message: PNMessageResult) {
+                //returns the messages and its details(Send and receive both as well ass past messages)
+            }
+
+            override fun presence(pubnub: PubNub, presence: PNPresenceEventResult) {}
+            override fun signal(pubnub: PubNub, pnSignalResult: PNSignalResult) {}
+            override fun messageAction(pubnub: PubNub, pnActionResult: PNMessageActionResult) {}
+            override fun file(pubnub: PubNub, pnFileEventResult: PNFileEventResult) {}
+        }
+
+        pubnub.addListener(subscribeCallback)
+       //For removing Listeners
+         pubnub.removeListener(subscribeCallback)
+
+          //To publish Message or in other words to send message to particular channel or channels
+         pubnub.publish(
+             channel = myChannel,
+             message = myMessage
+         ).async { result, status ->
+             println(status)
+             if (!status.error) {
+                 println("Message sent, timetoken: ${result!!.timetoken}")
+             } else {
+                 println("Error while publishing")
+                 status.exception?.printStackTrace()
+             }
+         }
+            //to Subscribe
+         pubnub.subscribe(
+             channels = listOf(myChannel)
+         )
+
+
+
+
+
+         Other Steps are same for Both Kotlin and JAVA
+
+
+-Returning State: Requires Presence add-on
+gives Messages in return
+
+
+            pubnub.hereNow(
+                channels = listOf("ch1", "ch2"),
+                includeState = true
+            ).async { result, status ->
+             if (!status.error) {
+                 result!!.channels.values.forEach { channelData ->
+                     channelData.channelName // ch1
+                     channelData.occupancy // 3
+                     channelData.occupants.forEach { o ->
+                         o.uuid // some_uuid, returned by default
+                         o.state // {"data":{"isTyping":true}}, requested
+                     }
+                 }
+             } else {
+                 // handle error
+                 status.exception?.printStackTrace()
+             }
+            }
+
+
+
+
+ Add pc Notifications for message
+
+        pubnub.addPushNotificationsOnChannels(
+            pushType: PNPushType.FCM,
+            channels: List<String>,
+            deviceId: String,
+            topic: String,
+            environment: PNPushEnvironment
+        ).async { result, status -> }
+
+
+
+

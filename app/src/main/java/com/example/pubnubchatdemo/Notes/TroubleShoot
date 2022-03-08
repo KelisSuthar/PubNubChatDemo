@@ -1,0 +1,90 @@
+Welcome To Pub Nub Chatting(Website used for this  - https://www.pubnub.com/docs/
+Git Example for Mobile is in this link -https://github.com/pubnub/chat-examples-java
+
+Please Refer This for more troubleshoots - https://www.pubnub.com/docs/sdks/kotlin/troubleshooting
+TroubleShoots that might developer face
+
+1)Might face because of gradle implementation is not proper
+    Please Make sure if dependency is like this
+        implementation 'com.pubnub:pubnub-gson:v6.0.0'
+        than there might be error during gradle build
+        use version code only at the end without 'v'
+        implementation 'com.pubnub:pubnub-gson:6.0.0'
+        Also,
+        if developer is facing other issue regarding gradle build than there might be an issue with classpath version please make sure that version of tha class path must be grate than 3.0.0.0
+
+        This will work same for kotlin format
+
+2) Sent or receive Messages are not return in callback
+    There might a chance that developer must forgot to subscribe particular channel
+     after publishing developer must need to add subscribe code
+        For EX =
+            private fun implementPubNub() {
+                val config = PNConfiguration(uniqueId).apply {
+                    subscribeKey = "YOUR_SUB_KEY"
+                    publishKey = "YOUR_PUB_KEY"
+                    uuid = uniqueId
+                    logVerbosity = PNLogVerbosity.BODY
+                    reconnectionPolicy = PNReconnectionPolicy.LINEAR
+                    maximumReconnectionRetries = 10
+                }
+                pubnub = PubNub(config)
+
+                pubnub!!.subscribe(channels = listOf("Channel_01"))//List OF Channels    //todo - Must Implement Subscribe to receive messages
+
+            }
+            Also check the channel name that must be proper
+3)Messages Check (Sender's Message or Receiver's Message)
+    There might be a problem that developer find not working is that how to figure out that (I have used UUID as identifier)
+    i checked that particular message has my UUID or not through that
+4)Get All the messages
+    If developer used history
+          pubnub.history()
+                        .channel("history_channel") // where to fetch history from
+                        .count(100) // how many items to fetch
+                        .async(new PNCallback<PNHistoryResult>() {
+                            @Override
+                            public void onResponse(PNHistoryResult result, PNStatus status) {
+
+                            }
+                        });
+            than it will return only messages not each message details for that developer needs to use fetchMessages() for all data
+
+
+            pubnub.fetchMessages()
+                    .channels(Arrays.asList("my_channel"))
+                    .maximumPerChannel(25)
+                    .includeMessageActions(true)
+                    .includeMeta(true)
+                    .includeMessageType(true)
+                    .includeUUID(true)
+                    .async(new PNCallback<PNFetchMessagesResult>() {
+                        @Override
+                        public void onResponse(PNFetchMessagesResult result, PNStatus status) {
+                            if (!status.isError()) {
+                                Map<String, List<PNFetchMessageItem>> channels = result.getChannels();
+                                for (PNFetchMessageItem messageItem : channels.get("my_channel")) {
+                                    System.out.println(messageItem.getMessage());
+                                    System.out.println(messageItem.getMeta());
+                                    System.out.println(messageItem.getTimetoken());
+                                    System.out.println(messageItem.getMessagetType());
+                                    System.out.println(messageItem.getUuid());
+                                    HashMap<String, HashMap<String, List<PNFetchMessageItem.Action>>> actions =
+                                            messageItem.getActions();
+                                    for (String type : actions.keySet()) {
+                                        System.out.println("Action type: " + type);
+                                        for (String value : actions.get(type).keySet()) {
+                                            System.out.println("Action value: " + value);
+                                            for (PNFetchMessageItem.Action action : actions.get(type).get(value)) {
+                                                System.out.println("Action timetoken: " + action.getActionTimetoken());
+                                                System.out.println("Action publisher: " + action.getUuid());
+                                            }
+                                        }
+                                    }
+                                }
+                            } else {
+                                status.getErrorData().getThrowable().printStackTrace();
+                            }
+                        }
+                    });
+
